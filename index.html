@@ -13,7 +13,7 @@
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API" href="api.html" /> 
+    <link rel="next" title="BMatrix" href="bmatrix_readme.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
@@ -25,7 +25,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="api.html" title="API"
+          <a href="bmatrix_readme.html" title="BMatrix"
              accesskey="N">next</a> |</li>
         <li class="nav-item nav-item-0"><a href="#">BNMPy 0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Welcome to BNMPy’s documentation!</a></li> 
@@ -42,6 +42,31 @@
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="bmatrix_readme.html">BMatrix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bmatrix_readme.html#required-packages">Required Packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bmatrix_readme.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bmatrix_readme.html#function-descriptions">Function Descriptions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#load-network-from-file-filename-initial-state-none">load_network_from_file(filename, initial_state=None)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-equations-file">get_equations(file)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-gene-dict-equations">get_gene_dict(equations)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-upstream-genes-equations">get_upstream_genes(equations)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-connectivity-matrix-equations-gene-dict-upstream-genes">get_connectivity_matrix(equations,gene_dict,upstream_genes)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-truth-table-equations-upstream-genes-show-functions-none">get_truth_table(equations,upstream_genes, show_functions = None)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-mutation-dict-file">get_mutation_dict(file)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-knocking-genes-profile-mutation-dict-connectivity-matrix-gene-dict-perturbed-genes-none-perturbed-dict-none">get_knocking_genes(profile, mutation_dict, connectivity_matrix, gene_dict,perturbed_genes=None, perturbed_dict=None)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bmatrix_readme.html#the-calculating-equations-which-all-start-with-cal-are-used-post-simulation-and-calculate-the-phenotype-scores-and-the-final-network-score"><em>The calculating equations (which all start with <code class="docutils literal notranslate"><span class="pre">cal_</span></code>) are used post-simulation and calculate the phenotype scores and the final network score</em>_</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-cal-upstream-genes-equations">get_cal_upstream_genes(equations):</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-cal-functions-equations">get_cal_functions(equations):</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bmatrix_readme.html#get-calculating-scores-is-to-be-used-post-simulation-which-requires-the-booleannetwork-code"><em>get_calculating_scores is to be used post-simulation, which requires the BooleanNetwork code</em></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bmatrix_readme.html#get-calculating-scores-network-traj-cal-functions-cal-upstream-genes-gene-dict-cal-range-none-scores-dict-none">get_calculating_scores(network_traj, cal_functions, cal_upstream_genes, gene_dict, cal_range=None, scores_dict=None)</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="bmatrix.html">BNMPy.BMatrix</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="bmatrix.html#BNMPy.BMatrix.get_upstream_genes"><code class="docutils literal notranslate"><span class="pre">get_upstream_genes()</span></code></a></li>
@@ -60,9 +85,24 @@
 <li class="toctree-l3"><a class="reference internal" href="booleanNetwork.html#BNMPy.booleanNetwork.getRandomParameters"><code class="docutils literal notranslate"><span class="pre">getRandomParameters()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="build_bn_from_kg.html">BNMPy.build_bn_from_kg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build_bn_from_kg.html">BNMPy.build_bn_from_kg</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="build_bn_from_kg.html#BNMPy.build_bn_from_kg.add_genes_to_network"><code class="docutils literal notranslate"><span class="pre">add_genes_to_network()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="build_bn_from_kg.html#BNMPy.build_bn_from_kg.load_signor_network"><code class="docutils literal notranslate"><span class="pre">load_signor_network()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="build_bn_from_kg.html#BNMPy.build_bn_from_kg.merge_network"><code class="docutils literal notranslate"><span class="pre">merge_network()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="PBN.html">BNMPy.PBN</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="PBN.html#BNMPy.PBN.ProbabilisticBN"><code class="docutils literal notranslate"><span class="pre">ProbabilisticBN</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vis.html">BNMPy.vis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vis.html#BNMPy.vis.build_igraph"><code class="docutils literal notranslate"><span class="pre">build_igraph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vis.html#BNMPy.vis.read_logic_rules"><code class="docutils literal notranslate"><span class="pre">read_logic_rules()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vis.html#BNMPy.vis.vis_logic_graph"><code class="docutils literal notranslate"><span class="pre">vis_logic_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="steady_state.html">BNMPy.steady_state</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="steady_state.html#BNMPy.steady_state.SteadyStateCalculator"><code class="docutils literal notranslate"><span class="pre">SteadyStateCalculator</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -96,8 +136,8 @@
   </div>
   <div>
     <h4>Next topic</h4>
-    <p class="topless"><a href="api.html"
-                          title="next chapter">API</a></p>
+    <p class="topless"><a href="bmatrix_readme.html"
+                          title="next chapter">BMatrix</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -130,7 +170,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="api.html" title="API"
+          <a href="bmatrix_readme.html" title="BMatrix"
              >next</a> |</li>
         <li class="nav-item nav-item-0"><a href="#">BNMPy 0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Welcome to BNMPy’s documentation!</a></li> 

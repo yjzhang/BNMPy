@@ -13,6 +13,7 @@
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="BNMPy.vis" href="vis.html" />
     <link rel="prev" title="BNMPy.build_bn_from_kg" href="build_bn_from_kg.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
@@ -24,6 +25,9 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="vis.html" title="BNMPy.vis"
+             accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="build_bn_from_kg.html" title="BNMPy.build_bn_from_kg"
              accesskey="P">previous</a> |</li>
@@ -42,7 +46,7 @@
 <span id="bnmpy-pbn"></span><h1>BNMPy.PBN<a class="headerlink" href="#module-BNMPy.PBN" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">BNMPy.PBN.</span></span><span class="sig-name descname"><span class="pre">ProbabilisticBN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">numberOfNodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linkages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numberOfFunctions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">functions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probabilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialNodeValues</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputFilePath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodeDict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">BNMPy.PBN.</span></span><span class="sig-name descname"><span class="pre">ProbabilisticBN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">numberOfNodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linkages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numberOfFunctions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">functions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probabilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialNodeValues</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputFilePath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodeDict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN" title="Link to this definition">¶</a></dt>
 <dd><p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -108,90 +112,90 @@
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.buildK">
-<span class="sig-name descname"><span class="pre">buildK</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.buildK" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">buildK</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.buildK"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.buildK" title="Link to this definition">¶</a></dt>
 <dd><p>This rebuilds the K array and related attributes.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#BNMPy.PBN.ProbabilisticBN" title="BNMPy.PBN.ProbabilisticBN"><span class="pre">ProbabilisticBN</span></a></span></span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.copy" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#BNMPy.PBN.ProbabilisticBN" title="BNMPy.PBN.ProbabilisticBN"><span class="pre">ProbabilisticBN</span></a></span></span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.copy" title="Link to this definition">¶</a></dt>
 <dd><p>Create a deep copy of the PBN.
 Required for optimization to avoid modifying original network.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.getBias">
-<span class="sig-name descname"><span class="pre">getBias</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getBias" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getBias</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.getBias"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getBias" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.getMaxConnectivity">
-<span class="sig-name descname"><span class="pre">getMaxConnectivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getMaxConnectivity" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getMaxConnectivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.getMaxConnectivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getMaxConnectivity" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.getMeanConnectivity">
-<span class="sig-name descname"><span class="pre">getMeanConnectivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getMeanConnectivity" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getMeanConnectivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.getMeanConnectivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getMeanConnectivity" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.getRealization">
-<span class="sig-name descname"><span class="pre">getRealization</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getRealization" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getRealization</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.getRealization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getRealization" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.getTrajectory">
-<span class="sig-name descname"><span class="pre">getTrajectory</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getTrajectory" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getTrajectory</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.getTrajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.getTrajectory" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.initializeOutput">
-<span class="sig-name descname"><span class="pre">initializeOutput</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.initializeOutput" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">initializeOutput</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.initializeOutput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.initializeOutput" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.knockdown">
-<span class="sig-name descname"><span class="pre">knockdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efficacy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.knockdown" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">knockdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efficacy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.knockdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.knockdown" title="Link to this definition">¶</a></dt>
 <dd><p>Sets a specific node with partial efficacy for experimental perturbation.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.knockout">
-<span class="sig-name descname"><span class="pre">knockout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.knockout" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">knockout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.knockout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.knockout" title="Link to this definition">¶</a></dt>
 <dd><p>Sets a specific node to be permanently fixed to a given value.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.setInitialValue">
-<span class="sig-name descname"><span class="pre">setInitialValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.setInitialValue" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">setInitialValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.setInitialValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.setInitialValue" title="Link to this definition">¶</a></dt>
 <dd><p>Sets a particular node to a given initial value, where the key is indexed in nodeDict.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.setInitialValues">
-<span class="sig-name descname"><span class="pre">setInitialValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initialNodeValues</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.setInitialValues" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">setInitialValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initialNodeValues</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.setInitialValues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.setInitialValues" title="Link to this definition">¶</a></dt>
 <dd><p>Sets the initial values of the probabilistic boolean network.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.stateToWrite">
-<span class="sig-name descname"><span class="pre">stateToWrite</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.stateToWrite" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">stateToWrite</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.stateToWrite"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.stateToWrite" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.undoKnockouts">
-<span class="sig-name descname"><span class="pre">undoKnockouts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.undoKnockouts" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">undoKnockouts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.undoKnockouts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.undoKnockouts" title="Link to this definition">¶</a></dt>
 <dd><p>Undoes all knockouts and knockdowns. Does not change initial values, however.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.update" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.update" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.update_cumulative_probabilities">
-<span class="sig-name descname"><span class="pre">update_cumulative_probabilities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.update_cumulative_probabilities" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">update_cumulative_probabilities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.update_cumulative_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.update_cumulative_probabilities" title="Link to this definition">¶</a></dt>
 <dd><p>Update cumulative probabilities for each node’s functions.
 This is used for efficient function selection during simulation.</p>
 <p>The method:
@@ -202,7 +206,7 @@ This is used for efficient function selection during simulation.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.update_noise">
-<span class="sig-name descname"><span class="pre">update_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.update_noise" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">update_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.update_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.update_noise" title="Link to this definition">¶</a></dt>
 <dd><p>Update the network with noise parameter p over a given number of iterations.</p>
 <p>This method simulates the network’s evolution over time with added noise.
 Noise randomly flips node states with probability p after normal network update,
@@ -211,7 +215,7 @@ but is never applied to constant nodes (knockouts).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="BNMPy.PBN.ProbabilisticBN.writeNetworkHistory">
-<span class="sig-name descname"><span class="pre">writeNetworkHistory</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.writeNetworkHistory" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">writeNetworkHistory</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/PBN.html#ProbabilisticBN.writeNetworkHistory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.PBN.ProbabilisticBN.writeNetworkHistory" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -260,6 +264,11 @@ but is never applied to constant nodes (knockouts).</p>
     <p class="topless"><a href="build_bn_from_kg.html"
                           title="previous chapter">BNMPy.build_bn_from_kg</a></p>
   </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="vis.html"
+                          title="next chapter">BNMPy.vis</a></p>
+  </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -290,6 +299,9 @@ but is never applied to constant nodes (knockouts).</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="vis.html" title="BNMPy.vis"
+             >next</a> |</li>
         <li class="right" >
           <a href="build_bn_from_kg.html" title="BNMPy.build_bn_from_kg"
              >previous</a> |</li>
