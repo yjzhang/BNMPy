@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="BNMPy.booleanNetwork" href="booleanNetwork.html"><link rel="prev" title="API Reference" href="api.html">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>BNMPy.BMatrix - BNMPy 0.1 documentation</title>
+        <title>BNMPy.BMatrix - BNMPy 0.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">BNMPy 0.1 documentation</div></a>
+      <a href="index.html"><div class="brand">BNMPy 0.2 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -182,7 +182,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">BNMPy 0.1 documentation</span>
+  <span class="sidebar-brand-text">BNMPy 0.2 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -192,9 +192,11 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="optimization_guide.html">BNMPy Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_simulation.html">Basic Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="knowledge_graph_guide.html">Knowledge Graph Augmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="phenotype_score_guide.html">Phenotype Score</a></li>
 <li class="toctree-l1"><a class="reference internal" href="steady_state_guide.html">Steady State Calculation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization_guide.html">BNMPy Optimizer</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul class="current">
@@ -206,6 +208,7 @@
 <li class="toctree-l2"><a class="reference internal" href="vis.html">BNMPy.vis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="build_bn_from_kg.html">BNMPy.build_bn_from_kg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="model_parser.html">BNMPy.model_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="phenotype_score.html">BNMPy.phenotype_score</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parameter_optimizer.html">BNMPy.parameter_optimizer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="simulation_evaluator.html">BNMPy.simulation_evaluator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="experiment_data.html">BNMPy.experiment_data</a></li>
@@ -256,7 +259,7 @@
 <p>Resources for loading boolean networks from files (strings)</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="BNMPy.BMatrix.get_equations">
-<span class="sig-prename descclassname"><span class="pre">BNMPy.BMatrix.</span></span><span class="sig-name descname"><span class="pre">get_equations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/BMatrix.html#get_equations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.BMatrix.get_equations" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">BNMPy.BMatrix.</span></span><span class="sig-name descname"><span class="pre">get_equations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/BMatrix.html#get_equations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.BMatrix.get_equations" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -357,6 +360,14 @@ The boolean_function can also be a constant value (0 or 1), meaning that the gen
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="BNMPy.BMatrix.load_network">
+<span class="sig-prename descclassname"><span class="pre">BNMPy.BMatrix.</span></span><span class="sig-name descname"><span class="pre">load_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/BMatrix.html#load_network"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.BMatrix.load_network" title="Link to this definition">¶</a></dt>
+<dd><p>Unified function to load a Boolean Network or Probabilistic Boolean Network from a file or string.</p>
+<p>This function automatically detects whether the input is a file path or a network string,
+and whether it represents a Boolean Network (BN) or Probabilistic Boolean Network (PBN).</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="BNMPy.BMatrix.rename_nodes">
 <span class="sig-prename descclassname"><span class="pre">BNMPy.BMatrix.</span></span><span class="sig-name descname"><span class="pre">rename_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand_complexes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BNMPy/BMatrix.html#rename_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BNMPy.BMatrix.rename_nodes" title="Link to this definition">¶</a></dt>
 <dd><p>Rename nodes in a boolean network based on a mapping.</p>
@@ -434,6 +445,7 @@ The boolean_function can also be a constant value (0 or 1), meaning that the gen
 <li><a class="reference internal" href="#BNMPy.BMatrix.load_network_from_string"><code class="docutils literal notranslate"><span class="pre">load_network_from_string()</span></code></a></li>
 <li><a class="reference internal" href="#BNMPy.BMatrix.load_pbn_from_file"><code class="docutils literal notranslate"><span class="pre">load_pbn_from_file()</span></code></a></li>
 <li><a class="reference internal" href="#BNMPy.BMatrix.load_pbn_from_string"><code class="docutils literal notranslate"><span class="pre">load_pbn_from_string()</span></code></a></li>
+<li><a class="reference internal" href="#BNMPy.BMatrix.load_network"><code class="docutils literal notranslate"><span class="pre">load_network()</span></code></a></li>
 <li><a class="reference internal" href="#BNMPy.BMatrix.rename_nodes"><code class="docutils literal notranslate"><span class="pre">rename_nodes()</span></code></a></li>
 </ul>
 </li>
@@ -446,7 +458,7 @@ The boolean_function can also be a constant value (0 or 1), meaning that the gen
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=2709fde1"></script>
+</div><script src="_static/documentation_options.js?v=10f1778b"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
