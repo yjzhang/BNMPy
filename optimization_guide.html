@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="API Reference" href="api.html"><link rel="prev" title="Steady State Calculation Guide" href="steady_state_guide.html">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
+    <!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
         <title>BNMPy Optimizer - BNMPy 0.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
@@ -194,7 +194,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="basic_simulation.html">Basic Simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="knowledge_graph_guide.html">Knowledge Graph Augmentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="phenotype_score_guide.html">Phenotype Score</a></li>
 <li class="toctree-l1"><a class="reference internal" href="steady_state_guide.html">Steady State Calculation Guide</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">BNMPy Optimizer</a></li>
 </ul>
@@ -295,8 +294,12 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">Stimuli_efficacy</span></code>: Efficacy of stimuli (0-1, comma-separated, optional)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Inhibitors</span></code>: Nodes fixed to 0 (comma-separated)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Inhibitors_efficacy</span></code>: Efficacy of inhibitors (0-1, comma-separated, optional)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Measured_nodes</span></code>: Nodes with experimental measurements</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Measured_values</span></code>: Corresponding values (0-1, normalized)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Measured_nodes</span></code>: Nodes with experimental measurements OR a formula expression</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Measured_values</span></code>: Corresponding values. For formulas, a single value per row is required</p>
+<ul>
+<li><p>Values can be in any range; use the <code class="docutils literal notranslate"><span class="pre">normalize</span></code> parameter for automatic scaling</p></li>
+</ul>
+</li>
 </ul>
 <p>See <a class="reference internal" href="#../Examples/files/experiments_example.csv"><span class="xref myst">Examples/files/experiments_example.csv</span></a> for an example file.</p>
 <p><strong>Efficacy Values:</strong></p>
@@ -312,9 +315,63 @@
 <li><p>If efficacy columns are empty, defaults to 1.0 for all perturbations</p></li>
 </ul>
 </section>
-<section id="pbn-data">
-<h4>PBN Data<a class="headerlink" href="#pbn-data" title="Link to this heading">¶</a></h4>
-<p>A ProbabilisticBN object, see <a class="reference internal" href="#../Examples/PBN_simulation.ipynb"><span class="xref myst">PBN_simulation.ipynb</span></a>.</p>
+<section id="formula-based-measurements-phenotype-score">
+<h4>Formula-based Measurements (Phenotype score)<a class="headerlink" href="#formula-based-measurements-phenotype-score" title="Link to this heading">¶</a></h4>
+<p>We can target an aggregate score instead of individual nodes using a formula based on node names and arithmetic operators. Two ways to use formulas:</p>
+<ul class="simple">
+<li><p>Place the formula directly in <code class="docutils literal notranslate"><span class="pre">Measured_nodes</span></code> and provide a single target value in <code class="docutils literal notranslate"><span class="pre">Measured_values</span></code>:</p></li>
+</ul>
+<div class="highlight-csv notranslate"><div class="highlight"><pre><span></span>Experiments,Stimuli,Stimuli_efficacy,Inhibitors,Inhibitors_efficacy,Measured_nodes,Measured_values
+1,,,,,&quot;nodeA + nodeB - nodeC&quot;,0.75
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Or supply a global formula via the optimizer argument <code class="docutils literal notranslate"><span class="pre">Measured_formula</span></code> (overrides CSV <code class="docutils literal notranslate"><span class="pre">Measured_nodes</span></code> ), with each CSV row having a single <code class="docutils literal notranslate"><span class="pre">Measured_values</span></code> entry:</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">ParameterOptimizer</span><span class="p">(</span>
+    <span class="n">pbn</span><span class="p">,</span>
+    <span class="s2">&quot;experiments.csv&quot;</span><span class="p">,</span>
+    <span class="n">nodes_to_optimize</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nodeX&#39;</span><span class="p">],</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">Measured_formula</span><span class="o">=</span><span class="s2">&quot;nodeA + nodeB - nodeC&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Supported operators: <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, parentheses and unary <code class="docutils literal notranslate"><span class="pre">+/-</span></code></p></li>
+<li><p>Variables must correspond to nodes in the network (<code class="docutils literal notranslate"><span class="pre">pbn.nodeDict</span></code>)</p></li>
+<li><p>Measured values should be in the same range as the theoretical formula range</p>
+<ul>
+<li><p>Formula range examples: <code class="docutils literal notranslate"><span class="pre">N1+N2+N3</span></code> → [0,3], <code class="docutils literal notranslate"><span class="pre">N1+N2-N3</span></code> → [-1,2], <code class="docutils literal notranslate"><span class="pre">N1-N2</span></code> → [-1,1]</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="value-normalization">
+<h4>Value Normalization<a class="headerlink" href="#value-normalization" title="Link to this heading">¶</a></h4>
+<p>When experimental measurements span different scales, enable automatic min-max normalization:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">ParameterOptimizer</span><span class="p">(</span>
+    <span class="n">pbn</span><span class="p">,</span>
+    <span class="s2">&quot;experiments.csv&quot;</span><span class="p">,</span>
+    <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Enable automatic normalization</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>How normalization works:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Measured values</strong> (from CSV): All measured values across all experiments are collected and scaled to [0, 1] using min-max normalization:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">(value</span> <span class="pre">-</span> <span class="pre">min)</span> <span class="pre">/</span> <span class="pre">(max</span> <span class="pre">-</span> <span class="pre">min)</span></code></p></li>
+<li><p>Example: Values <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">2.0,</span> <span class="pre">2.5,</span> <span class="pre">3.0]</span></code> → <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">0.6,</span> <span class="pre">0.8,</span> <span class="pre">1.0]</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Predicted values</strong> (from simulation): At each optimization iteration, all predicted values (node states or phenotype scores) across all experiments are collected and scaled to [0, 1]:</p>
+<ul class="simple">
+<li><p>Example: Predicted <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">3,</span> <span class="pre">4]</span></code> → <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">0.5,</span> <span class="pre">1.0]</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>SSE calculation</strong>: Mean squared error is computed using normalized values</p></li>
+</ol>
 </section>
 </section>
 <section id="configurations">
@@ -533,7 +590,8 @@
 <li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
 <li><a class="reference internal" href="#input-data-format">Input Data Format</a><ul>
 <li><a class="reference internal" href="#experimental-data">Experimental Data</a></li>
-<li><a class="reference internal" href="#pbn-data">PBN Data</a></li>
+<li><a class="reference internal" href="#formula-based-measurements-phenotype-score">Formula-based Measurements (Phenotype score)</a></li>
+<li><a class="reference internal" href="#value-normalization">Value Normalization</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#configurations">Configurations</a><ul>

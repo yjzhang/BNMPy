@@ -4,10 +4,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
+    <!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
         <title>BNMPy.model_parser - BNMPy 0.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
@@ -193,7 +193,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../basic_simulation.html">Basic Simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../knowledge_graph_guide.html">Knowledge Graph Augmentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../phenotype_score_guide.html">Phenotype Score</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../steady_state_guide.html">Steady State Calculation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization_guide.html">BNMPy Optimizer</a></li>
 </ul>
@@ -411,10 +410,13 @@
         <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">network_dicts</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">net</span><span class="p">:</span>
                 <span class="n">gene_occ</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">BNs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">prob_other</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">prob</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">BNs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">prob_other</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="c1"># For each gene, store rule-&gt;prob in dict to allow probability summation</span>
+        <span class="n">merged_network</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="c1"># Track which genes we&#39;ve already seen (to identify first occurrence)</span>
+        <span class="n">first_occurrence</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">merged_network</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">network</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">network_dicts</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 
@@ -425,19 +427,30 @@
                 <span class="k">if</span> <span class="n">gene_occ</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">overlap_genes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
 
-                <span class="c1"># probability assignment</span>
-                <span class="n">rule_prob</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">gene_occ</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">(</span><span class="n">prob</span> <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">prob_other</span><span class="p">)</span>
-                <span class="n">rule_str</span>  <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">expression</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">rule_prob</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="c1"># Determine if this is the first time we&#39;re seeing this gene</span>
+                <span class="n">is_first</span> <span class="o">=</span> <span class="n">gene</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">first_occurrence</span>
+                <span class="k">if</span> <span class="n">is_first</span><span class="p">:</span>
+                    <span class="n">first_occurrence</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
 
-                <span class="c1"># avoid duplicate rules</span>
-                <span class="n">existing_rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">merged_network</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="p">[])]</span>
-                <span class="k">if</span> <span class="n">expression</span> <span class="ow">in</span> <span class="n">existing_rules</span><span class="p">:</span>
-                    <span class="n">descriptions</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;duplicate </span><span class="si">{</span><span class="n">expression</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
-                    <span class="k">continue</span>
+                <span class="c1"># probability assignment based on how many networks actually contain this gene</span>
+                <span class="k">if</span> <span class="n">gene_occ</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">rule_prob</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="k">elif</span> <span class="n">is_first</span><span class="p">:</span>
+                    <span class="n">rule_prob</span> <span class="o">=</span> <span class="n">prob</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Split (1 - prob) among the remaining (gene_occ[gene] - 1) networks</span>
+                    <span class="n">rule_prob</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">prob</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">gene_occ</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">rule_prob</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">rule_prob</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
-                <span class="n">merged_network</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rule_str</span><span class="p">)</span>
-                <span class="n">descriptions</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">rule_str</span><span class="p">))</span>
-                <span class="n">descriptions</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Merged&quot;</span><span class="p">,</span> <span class="n">merged_network</span><span class="p">[</span><span class="n">gene</span><span class="p">]))</span>
+                <span class="k">if</span> <span class="n">expression</span> <span class="ow">in</span> <span class="n">merged_network</span><span class="p">[</span><span class="n">gene</span><span class="p">]:</span>
+                    <span class="c1"># If rule already present, add up the probability</span>
+                    <span class="n">merged_network</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="n">expression</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rule_prob</span>
+                    <span class="n">descriptions</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;added prob </span><span class="si">{</span><span class="n">rule_prob</span><span class="si">}</span><span class="s2"> to existing rule </span><span class="si">{</span><span class="n">expression</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">merged_network</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="n">expression</span><span class="p">]</span> <span class="o">=</span> <span class="n">rule_prob</span>
+                    <span class="n">descriptions</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;added new rule </span><span class="si">{</span><span class="n">expression</span><span class="si">}</span><span class="s2"> with prob </span><span class="si">{</span><span class="n">rule_prob</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+                <span class="c1"># Track status for user output</span>
+                <span class="n">descriptions</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Merged&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">merged_network</span><span class="p">[</span><span class="n">gene</span><span class="p">])))</span>
                 <span class="k">continue</span>  <span class="c1"># go to next gene</span>
 
             <span class="c1"># DETERMINISTIC MODES</span>
@@ -483,11 +496,11 @@
             <span class="c1"># first time this gene appears</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;PBN&quot;</span><span class="p">:</span>
-                    <span class="c1"># for unique genes we *already* handled prob=1 rule above,</span>
-                    <span class="c1"># but this branch never executes in PBN.</span>
+                    <span class="c1"># This branch is not executed for PBN since merged_network is defaultdict</span>
                     <span class="k">pass</span>
-                <span class="n">merged_network</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">=</span> <span class="n">expression</span>
-                <span class="n">descriptions</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">expression</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">merged_network</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">=</span> <span class="n">expression</span>
+                    <span class="n">descriptions</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">expression</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">descriptive</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Merging Method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -515,10 +528,12 @@
     <span class="c1"># return the merged network string</span>
     <span class="n">merged_lines</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;PBN&quot;</span><span class="p">:</span>
-        <span class="c1"># each rule is already stored as &quot;expr, p&quot;  (string)</span>
-        <span class="k">for</span> <span class="n">gene</span><span class="p">,</span> <span class="n">rules</span> <span class="ow">in</span> <span class="n">merged_network</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">:</span>             <span class="c1"># rule = &quot;expr, prob&quot;</span>
-                <span class="n">merged_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gene</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">rule</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># output format: gene = expr, prob for each rule with sum-probabilities</span>
+        <span class="k">for</span> <span class="n">gene</span><span class="p">,</span> <span class="n">rule_dict</span> <span class="ow">in</span> <span class="n">merged_network</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">expr</span><span class="p">,</span> <span class="n">rule_prob</span> <span class="ow">in</span> <span class="n">rule_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Only include rules with prob &gt; 0</span>
+                <span class="k">if</span> <span class="n">rule_prob</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">merged_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gene</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">expr</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">rule_prob</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">gene</span><span class="p">,</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">merged_network</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">merged_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gene</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">expr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

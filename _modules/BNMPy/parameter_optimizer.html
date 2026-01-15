@@ -4,10 +4,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
+    <!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
         <title>BNMPy.parameter_optimizer - BNMPy 0.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
@@ -193,7 +193,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../basic_simulation.html">Basic Simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../knowledge_graph_guide.html">Knowledge Graph Augmentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../phenotype_score_guide.html">Phenotype Score</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../steady_state_guide.html">Steady State Calculation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization_guide.html">BNMPy Optimizer</a></li>
 </ul>
@@ -291,7 +290,7 @@
     
 <div class="viewcode-block" id="ParameterOptimizer.__init__">
 <a class="viewcode-back" href="../../parameter_optimizer.html#BNMPy.parameter_optimizer.ParameterOptimizer.__init__">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pbn</span><span class="p">,</span> <span class="n">experiments</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nodes_to_optimize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">discrete</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pbn</span><span class="p">,</span> <span class="n">experiments</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nodes_to_optimize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">discrete</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">Measured_formula</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the parameter optimizer.</span>
 <span class="sd">        </span>
@@ -309,10 +308,16 @@
 <span class="sd">            Whether to perform discrete optimization</span>
 <span class="sd">        verbose : bool, default=False</span>
 <span class="sd">            Whether to print detailed optimization progress</span>
+<span class="sd">        Measured_formula : str, optional</span>
+<span class="sd">            Formula to use for calculating the objective function. Overrides CSV `Measured_nodes` for scoring.</span>
+<span class="sd">        normalize : bool, default=False</span>
+<span class="sd">            Whether to normalize formula-based measurements using min-max scaling across experiments.</span>
+<span class="sd">            When True, both predicted and measured formula values are scaled to [0,1] range.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pbn</span> <span class="o">=</span> <span class="n">pbn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">discrete</span> <span class="o">=</span> <span class="n">discrete</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span> <span class="o">=</span> <span class="n">normalize</span>
         
         <span class="c1"># Load experiments if string (CSV file path)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">experiments</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -320,11 +325,25 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">experiments</span> <span class="o">=</span> <span class="n">experiments</span>
         
+        <span class="c1"># Use a measured formula across all experiments</span>
+        <span class="k">if</span> <span class="n">Measured_formula</span><span class="p">:</span>
+            <span class="n">override_formula</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Measured_formula</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">experiments</span><span class="p">:</span>
+                <span class="n">exp</span><span class="p">[</span><span class="s1">&#39;measured_formula&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">override_formula</span>
+                <span class="c1"># Determine measured_value: prefer existing formula value, else first raw value</span>
+                <span class="k">if</span> <span class="n">exp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;measured_value&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">raw_vals</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;measured_values_raw&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_vals</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Measured_formula requires each experiment to have exactly one Measured_values entry in the CSV&quot;</span><span class="p">)</span>
+                    <span class="n">exp</span><span class="p">[</span><span class="s1">&#39;measured_value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c1"># Clear per-node measurements when using a formula target</span>
+                <span class="n">exp</span><span class="p">[</span><span class="s1">&#39;measurements&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        
         <span class="c1"># Validate experiments</span>
         <span class="n">ExperimentData</span><span class="o">.</span><span class="n">validate_experiments</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">experiments</span><span class="p">,</span> <span class="n">pbn</span><span class="o">.</span><span class="n">nodeDict</span><span class="p">)</span>
         
         <span class="c1"># Initialize evaluator</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span> <span class="o">=</span> <span class="n">SimulationEvaluator</span><span class="p">(</span><span class="n">pbn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">experiments</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">nodes_to_optimize</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span> <span class="o">=</span> <span class="n">SimulationEvaluator</span><span class="p">(</span><span class="n">pbn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">experiments</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">nodes_to_optimize</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">)</span>
         
         <span class="c1"># Set configuration</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_config</span><span class="p">()</span>
