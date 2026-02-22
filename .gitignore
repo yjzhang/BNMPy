@@ -17,4 +17,4 @@ input_files/
 # ignore simulation results in any subfolder except notebooks
 pancreatic_cancer_simulation/**
 AML_simulation/**
-!AML_simulation/*.ipynb
+!AML_simulation/KGBN_manuscript.ipynb
