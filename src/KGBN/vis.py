@@ -794,14 +794,12 @@ def vis_extension(original_network, extended_network, output_html="network+KG.ht
                 for rule in rules:
                     inputs = set(re.findall(r'\b[A-Za-z0-9_]+\b', rule))
                     for input_node in inputs:
-                        if input_node != target:
-                            edges.add((input_node, target))
+                        edges.add((input_node, target))
             else:
                 # BN case
                 inputs = set(re.findall(r'\b[A-Za-z0-9_]+\b', rules))
                 for input_node in inputs:
-                    if input_node != target:
-                        edges.add((input_node, target))
+                    edges.add((input_node, target))
         return edges
     
     # Extract nodes and edges
