@@ -758,7 +758,12 @@ class SteadyStateCalculator:
             'max_connectivity': np.max(self.K) if len(self.K) > 0 else 0
         }
 
-    def compute_stationary_deterministic(self, n_runs: int = 100, n_steps: int = 1000, verbose: bool = True, seed: Optional[int] = None) -> Dict[str, Union[List[np.ndarray], List[List[np.ndarray]]]]:
+    def compute_stationary_deterministic(self, n_runs: int = 100, n_steps: int = 1000, 
+                                         verbose: bool = True, seed: Optional[int] = None,
+                                         stimuli: List[str] = None,
+                                         stimuli_efficacy: List[float] = None,
+                                         inhibitors: List[str] = None,
+                                         inhibitors_efficacy: List[float] = None) -> Dict[str, Union[List[np.ndarray], List[List[np.ndarray]]]]:
         """
         Find attractors (fixed points and cycles) in a synchronous
         Boolean network via random restarts.
@@ -773,6 +778,14 @@ class SteadyStateCalculator:
             Whether to print steady state information
         seed : int, optional
             Random seed for reproducibility
+        stimuli : List[str], optional
+            Node names to stimulate (fix to 1)
+        stimuli_efficacy : List[float], optional
+            Efficacy values for stimuli (0-1). If 1.0, full knockout. If < 1.0, probabilistic.
+        inhibitors : List[str], optional
+            Node names to inhibit (fix to 0)
+        inhibitors_efficacy : List[float], optional
+            Efficacy values for inhibitors (0-1). If 1.0, full knockout. If < 1.0, probabilistic.
 
         Returns
         -------
@@ -785,7 +798,17 @@ class SteadyStateCalculator:
         # Set random seed for reproducibility
         if seed is not None:
             np.random.seed(seed)
-            
+
+        # Apply experimental conditions if provided
+        has_conditions = any(x is not None for x in [stimuli, inhibitors])
+        if has_conditions:
+            self.set_experimental_conditions(
+                stimuli=stimuli,
+                stimuli_efficacy=stimuli_efficacy,
+                inhibitors=inhibitors,
+                inhibitors_efficacy=inhibitors_efficacy,
+            )
+
         fixed_points: List[np.ndarray] = []
         cycles: List[List[np.ndarray]] = []
 
@@ -800,11 +823,17 @@ class SteadyStateCalculator:
 
         self._save_network_state()  # keep original state
 
+        # Identify nodes that must keep their fixed value during random restarts
+        fixed_indices = set(self.input_indices)
+        for i in range(self.N):
+            if self._is_constant_node(i):
+                fixed_indices.add(i)
+
         for _ in range(n_runs):
             # random start
             init = (np.random.rand(self.N) > 0.5).astype(np.int8)
-            # Keep input nodes at their current values (set by experimental conditions)
-            for i in self.input_indices:
+            # Keep input and constant/knocked-out nodes at their current values
+            for i in fixed_indices:
                 init[i] = self.network.nodes[i]
             
             self.network.setInitialValues(init)
