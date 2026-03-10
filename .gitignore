@@ -13,8 +13,10 @@ lib/
 # ignore data folder
 data/
 input_files/
+ref/
 
 # ignore simulation results in any subfolder except notebooks
 pancreatic_cancer_simulation/**
 AML_simulation/**
 !AML_simulation/KGBN_manuscript.ipynb
+VEN-HMA/
