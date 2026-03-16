@@ -96,18 +96,18 @@ class ResultEvaluator:
             'measurements': [],
             'experiment_ids': [],
             'measured_nodes': [],
+            # These will store the values used for metrics / residuals
             'predicted_values': [],
             'measured_values': [],
-            'original_measured_values': []  # For plotting with original scale
+            # These always store the original (unnormalized) scale
+            'original_predicted_values': [],
+            'original_measured_values': []
         }
         
         # Ensure the PBN has the optimized parameters
         if hasattr(self.result, 'x') and self.result.x is not None:
             cij_matrix = self.evaluator._vector_to_cij_matrix(self.result.x)
             self.evaluator._update_pbn_parameters(cij_matrix)
-        
-        # Check if normalization was used
-        is_normalized = hasattr(self.evaluator, 'normalize') and self.evaluator.normalize
         
         for i, experiment in enumerate(self.experiments):
             try:
@@ -131,9 +131,10 @@ class ResultEvaluator:
                     exp_predictions['Formula'] = predicted_value
                     exp_measurements['Formula'] = original_measured_value
                     
-                    # Store for correlation analysis ( use original values for plotting)
+                    # Store values (initially in original scale)
                     simulation_results['predicted_values'].append(predicted_value)
                     simulation_results['measured_values'].append(original_measured_value)
+                    simulation_results['original_predicted_values'].append(predicted_value)
                     simulation_results['original_measured_values'].append(original_measured_value)
                     simulation_results['measured_nodes'].append('Formula')
                     simulation_results['experiment_ids'].append(experiment.get('id', i+1))
@@ -151,9 +152,10 @@ class ResultEvaluator:
                             exp_predictions[node_name] = predicted_value
                             exp_measurements[node_name] = original_measured_value
                             
-                            # Store for correlation analysis ( use original values for plotting)
+                            # Store values (initially in original scale)
                             simulation_results['predicted_values'].append(predicted_value)
                             simulation_results['measured_values'].append(original_measured_value)
+                            simulation_results['original_predicted_values'].append(predicted_value)
                             simulation_results['original_measured_values'].append(original_measured_value)
                             simulation_results['measured_nodes'].append(node_name)
                             simulation_results['experiment_ids'].append(experiment.get('id', i+1))
@@ -167,10 +169,54 @@ class ResultEvaluator:
             except Exception as e:
                 print(f"  Warning: Failed to simulate experiment {i+1}: {str(e)}")
                 
+        # If normalization was enabled during optimization, transform the
+        # stored values so that predicted / measured are on the normalized
+        # scale while keeping originals in separate arrays.
+        if hasattr(self.evaluator, 'normalize') and self.evaluator.normalize:
+            self._apply_normalization_to_simulation_results(simulation_results)
+
         self.simulation_results = simulation_results
         
         print(f"Simulation completed: {len(simulation_results['predicted_values'])} data points")
         return simulation_results
+
+    def _apply_normalization_to_simulation_results(self, simulation_results: Dict) -> None:
+        """
+        When normalize=True in the optimizer, adjust simulation_results so that:
+        - 'predicted_values' and 'measured_values' are normalized.
+        - 'original_predicted_values' and 'original_measured_values' keep the originals.
+        This ensures residuals and metrics are computed on the normalized scale,
+        while original-scale information is still available for plotting/export.
+        """
+        # Original values collected during simulation
+        original_pred = np.array(simulation_results.get('original_predicted_values', []), dtype=float)
+        original_meas = np.array(simulation_results.get('original_measured_values', []), dtype=float)
+
+        if original_pred.size == 0 or original_meas.size == 0:
+            return
+
+        # Normalize predicted values across all experiments (min-max)
+        pred_min = float(np.min(original_pred))
+        pred_max = float(np.max(original_pred))
+        if pred_max - pred_min > 1e-10:
+            normalized_pred = (original_pred - pred_min) / (pred_max - pred_min)
+        else:
+            normalized_pred = np.full_like(original_pred, 0.5)
+
+        # Normalize measured values using the precomputed mapping in the evaluator
+        normalized_meas = np.zeros_like(original_meas, dtype=float)
+        for idx, (exp_id, node_name) in enumerate(
+            zip(simulation_results['experiment_ids'], simulation_results['measured_nodes'])
+        ):
+            if node_name == 'Formula':
+                key = exp_id
+            else:
+                key = (exp_id, node_name)
+            normalized_meas[idx] = self.evaluator.normalized_measured_values.get(key, 0.5)
+
+        # Overwrite with normalized values (original_* remain unchanged)
+        simulation_results['predicted_values'] = list(normalized_pred)
+        simulation_results['measured_values'] = list(normalized_meas)
     
     def calculate_evaluation_metrics(self) -> Dict:
         """
@@ -394,48 +440,101 @@ class ResultEvaluator:
         if len(predicted) == 0:
             print("No data available for plotting")
             return None
-        
-        # Create subplots
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
-        
-        # Residuals vs Predicted
-        ax1.scatter(predicted, residuals, alpha=0.7, s=60)
-        ax1.axhline(y=0, color='r', linestyle='--', linewidth=2)
-        ax1.set_xlabel('Predicted Values')
-        ax1.set_ylabel('Residuals (Predicted - Measured)')
-        ax1.set_title('Residuals vs Predicted Values')
-        ax1.grid(True, alpha=0.3)
-        
-        # Add experiment ID labels if requested
-        if show_experiment_ids:
-            for pred, res, exp_id in zip(predicted, residuals, experiment_ids):
-                ax1.annotate(f'E{exp_id}', (pred, res), xytext=(5, 5), 
-                           textcoords='offset points', fontsize=8, alpha=0.7)
-        
-        # Histogram of residuals
-        ax2.hist(residuals, bins=min(20, len(residuals)//3), alpha=0.7, edgecolor='black')
-        ax2.axvline(x=0, color='r', linestyle='--', linewidth=2)
-        ax2.set_xlabel('Residuals')
-        ax2.set_ylabel('Frequency')
-        ax2.set_title('Distribution of Residuals')
-        ax2.grid(True, alpha=0.3)
-        
-        # Add statistics
-        mean_residual = np.mean(residuals)
-        std_residual = np.std(residuals)
-        
-        ax2.text(0.02, 0.98, f'Mean: {mean_residual:.4f}\nStd: {std_residual:.4f}', 
-                transform=ax2.transAxes, verticalalignment='top',
-                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
-        
+
+        is_normalized = hasattr(self.evaluator, 'normalize') and self.evaluator.normalize
+
+        if is_normalized:
+            # When normalization is enabled, create three panels:
+            # 1) Residuals vs normalized predicted
+            # 2) Histogram of normalized residuals
+            # 3) Residuals vs original predicted (original scale)
+            fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(figsize[0] * 1.5, figsize[1]))
+
+            # Panel 1: normalized residuals vs normalized predicted
+            ax1.scatter(predicted, residuals, alpha=0.7, s=60)
+            ax1.axhline(y=0, color='r', linestyle='--', linewidth=2)
+            ax1.set_xlabel('Predicted (normalized)')
+            ax1.set_ylabel('Residuals (normalized)')
+            ax1.set_title('Residuals vs Predicted (normalized)')
+            ax1.grid(True, alpha=0.3)
+
+            if show_experiment_ids:
+                for pred, res, exp_id in zip(predicted, residuals, experiment_ids):
+                    ax1.annotate(f'E{exp_id}', (pred, res), xytext=(5, 5),
+                                 textcoords='offset points', fontsize=8, alpha=0.7)
+
+            # Panel 2: histogram of normalized residuals
+            ax2.hist(residuals, bins=min(20, len(residuals)//3), alpha=0.7, edgecolor='black')
+            ax2.axvline(x=0, color='r', linestyle='--', linewidth=2)
+            ax2.set_xlabel('Residuals (normalized)')
+            ax2.set_ylabel('Frequency')
+            ax2.set_title('Distribution of Residuals (normalized)')
+            ax2.grid(True, alpha=0.3)
+
+            mean_residual = np.mean(residuals)
+            std_residual = np.std(residuals)
+            ax2.text(0.02, 0.98, f'Mean: {mean_residual:.4f}\nStd: {std_residual:.4f}',
+                     transform=ax2.transAxes, verticalalignment='top',
+                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+            # Panel 3: residuals using original (unnormalized) values
+            original_pred = np.array(self.simulation_results.get('original_predicted_values', []))
+            original_meas = np.array(self.simulation_results.get('original_measured_values', []))
+            if original_pred.size == predicted.size and original_meas.size == predicted.size:
+                original_residuals = original_pred - original_meas
+                ax3.scatter(original_pred, original_residuals, alpha=0.7, s=60)
+                ax3.axhline(y=0, color='r', linestyle='--', linewidth=2)
+                ax3.set_xlabel('Predicted (original)')
+                ax3.set_ylabel('Residuals (original)')
+                ax3.set_title('Residuals vs Predicted (original)')
+                ax3.grid(True, alpha=0.3)
+
+                if show_experiment_ids:
+                    for pred_o, res_o, exp_id in zip(original_pred, original_residuals, experiment_ids):
+                        ax3.annotate(f'E{exp_id}', (pred_o, res_o), xytext=(5, 5),
+                                     textcoords='offset points', fontsize=8, alpha=0.7)
+            else:
+                ax3.set_visible(False)
+
+        else:
+            # Original behavior: two panels on the original scale
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
+
+            # Residuals vs Predicted
+            ax1.scatter(predicted, residuals, alpha=0.7, s=60)
+            ax1.axhline(y=0, color='r', linestyle='--', linewidth=2)
+            ax1.set_xlabel('Predicted Values')
+            ax1.set_ylabel('Residuals (Predicted - Measured)')
+            ax1.set_title('Residuals vs Predicted Values')
+            ax1.grid(True, alpha=0.3)
+
+            if show_experiment_ids:
+                for pred, res, exp_id in zip(predicted, residuals, experiment_ids):
+                    ax1.annotate(f'E{exp_id}', (pred, res), xytext=(5, 5),
+                                 textcoords='offset points', fontsize=8, alpha=0.7)
+
+            # Histogram of residuals
+            ax2.hist(residuals, bins=min(20, len(residuals)//3), alpha=0.7, edgecolor='black')
+            ax2.axvline(x=0, color='r', linestyle='--', linewidth=2)
+            ax2.set_xlabel('Residuals')
+            ax2.set_ylabel('Frequency')
+            ax2.set_title('Distribution of Residuals')
+            ax2.grid(True, alpha=0.3)
+
+            mean_residual = np.mean(residuals)
+            std_residual = np.std(residuals)
+            ax2.text(0.02, 0.98, f'Mean: {mean_residual:.4f}\nStd: {std_residual:.4f}',
+                     transform=ax2.transAxes, verticalalignment='top',
+                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
         plt.tight_layout()
-        
+
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
             print(f"Residual plot saved to {save_path}")
         else:
             plt.show()
-        
+
         return fig
     
     def generate_evaluation_report(self, save_path: Optional[str] = None, include_config: bool = True) -> str:
@@ -536,19 +635,25 @@ class ResultEvaluator:
         if self.simulation_results is None:
             self.simulate_optimized_model()
         
-        # Create DataFrame with all results
+        # Arrays used for residuals and errors
+        pred = np.array(self.simulation_results['predicted_values'])
+        meas = np.array(self.simulation_results['measured_values'])
+
+        # Create DataFrame with all results. When normalization is enabled,
+        # Predicted_Value / Measured_Value / Residual are all on the normalized scale.
         data = {
             'Experiment_ID': self.simulation_results['experiment_ids'],
             'Node': self.simulation_results['measured_nodes'],
-            'Predicted_Value': self.simulation_results['predicted_values'],
-            'Measured_Value': self.simulation_results['measured_values'],
-            'Residual': np.array(self.simulation_results['predicted_values']) - np.array(self.simulation_results['measured_values']),
-            'Absolute_Error': np.abs(np.array(self.simulation_results['predicted_values']) - np.array(self.simulation_results['measured_values']))
+            'Predicted_Value': pred,
+            'Measured_Value': meas,
+            'Residual': pred - meas,
+            'Absolute_Error': np.abs(pred - meas)
         }
         
-        # Add original measured values if available (i.e., if normalization was used)
+        # Add original values if normalization was used
         if hasattr(self.evaluator, 'normalize') and self.evaluator.normalize:
-            data['Original_Measured_Value'] = self.simulation_results['original_measured_values']
+            data['Original_Predicted_Value'] = self.simulation_results.get('original_predicted_values', [])
+            data['Original_Measured_Value'] = self.simulation_results.get('original_measured_values', [])
         
         df = pd.DataFrame(data)
         df.to_csv(save_path, index=False)
