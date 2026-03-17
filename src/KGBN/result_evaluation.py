@@ -701,6 +701,7 @@ def evaluate_optimization_result(optimizer_result, parameter_optimizer,
         The result evaluator instance
     """
     import os
+    output_dir = os.path.abspath(output_dir)
     if save:
         os.makedirs(output_dir, exist_ok=True)
     
@@ -794,6 +795,7 @@ def evaluate_pbn(pbn, experiments, output_dir: str = '.', plot_residuals: bool =
         Dictionary with evaluation metrics and file paths
     """
     import os
+    output_dir = os.path.abspath(output_dir)
     if save:
         os.makedirs(output_dir, exist_ok=True)
     from .experiment_data import ExperimentData
