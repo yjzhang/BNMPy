@@ -87,6 +87,11 @@ def load_signor_network(gene_list, input_format="symbol", joiner='&', kg_filenam
             new_uniprot_list.append(u)
         except:
             continue
+    # # print edges in the graph where subject and object is in ['CDKN2A', 'MYC', 'TP53','CDK2']
+    # print("\nEdge found among CDKN2A, MYC, TP53, CDK2:")
+    # for e in graph.es:
+    #     if graph.vs[e.source].attributes()['feature_name'] in ['CDKN2A', 'MYC', 'TP53','CDK2'] and graph.vs[e.target].attributes()['feature_name'] in ['CDKN2A', 'MYC', 'TP53','CDK2']:
+    #         print(f"{graph.vs[e.source].attributes()['feature_name']} {e.attributes()['predicate']} {graph.vs[e.target].attributes()['feature_name']}")
     # print(new_uniprot_list)
     # Steiner subgraph - get a tree using a connected thing...
     tree = steiner_tree.steiner_tree(graph, new_uniprot_list)
@@ -300,7 +305,7 @@ def _resolve_curie_names(curies, curie_to_symbol, filtered_results, gene_names_m
                 curie_to_symbol.setdefault(c, c)
 
 
-def load_translator_network(gene_list, type='gene', joiner='&', n_hop=1,
+def load_translator_network(gene_list, type=None, joiner='&', n_hop=1,
         sele_predicate=['biolink:regulates'], sele_tax_id=9606, sele_API=None, sele_KG=None):
     """
     Creates a boolean network from Translator using all of the provided genes.
@@ -308,7 +313,7 @@ def load_translator_network(gene_list, type='gene', joiner='&', n_hop=1,
 
     Args:
         gene_list - list of symbols for genes, proteins, chemicals, or drugs
-        type - "gene", "protein", "chemical", "drug", "disease", "phenotype"
+        type - "gene", "protein", "chemical", "drug", "disease", "phenotype", or None (all possible types)
         joiner - "&", "|", "inhibitor_wins", or "majority", or "plurality"
                  (difference between the last two: in plurality, a tie indicates 1,
                  in majority, a tie indicates 0)
@@ -332,18 +337,6 @@ def load_translator_network(gene_list, type='gene', joiner='&', n_hop=1,
     if ' ' not in joiner and joiner in ('&', '|'):
         joiner = ' ' + joiner + ' '
 
-    category_map = {
-        'gene': 'biolink:Gene',
-        'protein': 'biolink:Protein',
-        'chemical': 'biolink:ChemicalSubstance',
-        'drug': 'biolink:Drug',
-        'disease': 'biolink:DiseaseOrPhenotypicFeature',
-        'phenotype': 'biolink:PhenotypicFeature',
-    }
-    input_node_category = category_map.get(type)
-    if input_node_category is None:
-        raise ValueError(f"Unknown type '{type}'. Must be one of: {list(category_map.keys())}")
-
     # 1. Resolve gene symbols → CURIEs
     print("Resolving gene names...")
     if sele_tax_id:
@@ -364,6 +357,27 @@ def load_translator_network(gene_list, type='gene', joiner='&', n_hop=1,
     if len(input_curies) < 2:
         print("Need at least 2 resolved genes to build a network.")
         return '', []
+    
+    # determine the input node categories
+    if type:
+        category_map = {
+            'gene': 'biolink:Gene',
+            'protein': 'biolink:Protein',
+            'chemical': 'biolink:ChemicalSubstance',
+            'drug': 'biolink:Drug',
+            'disease': 'biolink:DiseaseOrPhenotypicFeature',
+            'phenotype': 'biolink:PhenotypicFeature',
+        }
+        input_node_category = [category_map.get(type)]
+        if input_node_category is None:
+            raise ValueError(f"Unknown type '{type}'. Must be one of: {list(category_map.keys())}")
+    else:
+        input_node_category = []
+        for node in gene_list:
+            if hasattr(input_info[node], 'types'):
+                input_node_category.extend(input_info[node].types)
+        input_node_category = list(set(input_node_category))
+        print(f"Querying for input node categories: {input_node_category}")
 
     # 2. Load Translator resources & determine available predicates/APIs
     print("Loading Translator resources...")
@@ -371,10 +385,8 @@ def load_translator_network(gene_list, type='gene', joiner='&', n_hop=1,
     metaKG = translator_metakg.get_KP_metadata(APInames)
     APInames, metaKG = translator_metakg.add_plover_API(APInames, metaKG)
 
-    sub_cat = [input_node_category]
-    obj_cat = [input_node_category]
     all_predicates = list(set(
-        TCT.select_concept(sub_list=sub_cat, obj_list=obj_cat, metaKG=metaKG)))
+        TCT.select_concept(sub_list=input_node_category, obj_list=input_node_category, metaKG=metaKG)))
     query_predicates = all_predicates
     if sele_predicate is not None:
         filtered_predicates = [p for p in all_predicates if p in sele_predicate]
@@ -383,7 +395,7 @@ def load_translator_network(gene_list, type='gene', joiner='&', n_hop=1,
         else:
             print(f"Warning: none of sele_predicate found. Using all {len(all_predicates)} available predicates.")
     
-    all_APIs = TCT.select_API(sub_list=sub_cat, obj_list=obj_cat, metaKG=metaKG)
+    all_APIs = TCT.select_API(sub_list=input_node_category, obj_list=input_node_category, metaKG=metaKG)
     query_APIs = all_APIs
     if sele_API is not None:
         filtered_APIs = [a for a in all_APIs if a in sele_API]
@@ -398,7 +410,7 @@ def load_translator_network(gene_list, type='gene', joiner='&', n_hop=1,
 
     # 3. Query Translator
     def _do_query(curies):
-        qj = TCT.format_query_json(curies, [], sub_cat, obj_cat, query_predicates)
+        qj = TCT.format_query_json(curies, [], input_node_category, input_node_category, query_predicates)
         return translator_query.parallel_api_query(
             query_json=qj, select_APIs=query_APIs,
             APInames=APInames, API_predicates=API_predicates,
