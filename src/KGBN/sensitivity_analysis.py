@@ -12,7 +12,8 @@ from dataclasses import dataclass
 
 from KGBN.steady_state import SteadyStateCalculator
 
-def sensitivity_analysis(network, experiments, config=None, top_n=5, verbose=True):
+def sensitivity_analysis(network, experiments, config=None, top_n=5, verbose=True,
+                         Measured_formula: Optional[str] = None, normalize: bool = False):
     """
     Perform sensitivity analysis to identify the most influential nodes affecting measurements.
     
@@ -28,6 +29,10 @@ def sensitivity_analysis(network, experiments, config=None, top_n=5, verbose=Tru
         Number of top sensitive nodes to return
     verbose : bool
         Whether to print detailed progress information
+    Measured_formula : str, optional
+        Formula to use for calculating measurements. Overrides CSV ``Measured_nodes``.
+    normalize : bool, default=False
+        Whether to normalize formula-based measurements using min-max scaling across experiments.
         
     Returns:
     --------
@@ -39,7 +44,8 @@ def sensitivity_analysis(network, experiments, config=None, top_n=5, verbose=Tru
     start_time = time.time()
     
     # Initialize analyzer
-    analyzer = PBNSensitivityAnalyzer(network, experiments, config, verbose)
+    analyzer = PBNSensitivityAnalyzer(network, experiments, config, verbose,
+                                     Measured_formula=Measured_formula, normalize=normalize)
     
     if verbose:
         print("="*60)
@@ -69,9 +75,12 @@ class PBNSensitivityAnalyzer:
     Performs sensitivity analysis on PBN using existing steady state methods.
     """
     
-    def __init__(self, network, experiments, config=None, verbose=True):
+    def __init__(self, network, experiments, config=None, verbose=True,
+                 Measured_formula: Optional[str] = None, normalize: bool = False):
         self.pbn = network
         self.verbose = verbose
+        self.normalize = normalize
+        self.measured_formula = Measured_formula
         
         # Load experiments if path provided
         if isinstance(experiments, str):
@@ -79,6 +88,20 @@ class PBNSensitivityAnalyzer:
             self.experiments = ExperimentData.load_from_csv(experiments)
         else:
             self.experiments = experiments
+
+        # Apply Measured_formula override (same logic as ParameterOptimizer)
+        if Measured_formula:
+            override_formula = str(Measured_formula)
+            for exp in self.experiments:
+                exp['measured_formula'] = override_formula
+                if exp.get('measured_value') is None:
+                    raw_vals = exp.get('measured_values_raw') or []
+                    if len(raw_vals) != 1:
+                        raise ValueError(
+                            "Measured_formula requires each experiment to have exactly one Measured_values entry in the CSV"
+                        )
+                    exp['measured_value'] = raw_vals[0]
+                exp['measurements'] = {}
             
         # Set up configuration
         self.config = self._default_config()
@@ -90,7 +113,8 @@ class PBNSensitivityAnalyzer:
         self.evaluator = SimulationEvaluator(
             self.pbn, 
             self.experiments, 
-            self.config
+            self.config,
+            normalize=normalize
         )
         
         # Extract measured nodes from experiments
@@ -133,6 +157,8 @@ class PBNSensitivityAnalyzer:
     
     def _get_measured_nodes(self):
         """Extract all measured nodes from experiments"""
+        if any(exp.get('measured_formula') for exp in self.experiments):
+            return ['Formula']
         measured = set()
         for exp in self.experiments:
             measured.update(exp['measurements'].keys())
@@ -292,10 +318,15 @@ class PBNSensitivityAnalyzer:
                 # Simulate experiment
                 steady_state = self.evaluator._simulate_experiment(experiment)
                 
-                # Extract measured node values
-                for j, node_name in enumerate(self.measured_nodes):
-                    node_idx = self.pbn.nodeDict[node_name]
-                    exp_results[exp_idx, j] = steady_state[node_idx]
+                if experiment.get('measured_formula'):
+                    var_values = {name: steady_state[idx]
+                                  for name, idx in self.pbn.nodeDict.items()}
+                    exp_results[exp_idx, 0] = self.evaluator._safe_eval_formula(
+                        experiment['measured_formula'], var_values)
+                else:
+                    for j, node_name in enumerate(self.measured_nodes):
+                        node_idx = self.pbn.nodeDict[node_name]
+                        exp_results[exp_idx, j] = steady_state[node_idx]
                     
             except Exception as e:
                 exp_results[exp_idx, :] = np.nan
@@ -344,7 +375,8 @@ class PBNSensitivityAnalyzer:
         batches = []
         for i in range(0, n_samples, batch_size):
             batch_X = X[i:i+batch_size]
-            batches.append((batch_X, problem, self.pbn, self.experiments, self.config, self.measured_nodes))
+            batches.append((batch_X, problem, self.pbn, self.experiments,
+                            self.config, self.measured_nodes, self.normalize))
         
         # Process batches in parallel
         with Pool(n_workers) as pool:
@@ -451,7 +483,7 @@ class PBNSensitivityAnalyzer:
 # Worker function for parallel processing (must be at module level for pickling)
 def _evaluate_batch_worker(args):
     """Worker function for parallel batch evaluation"""
-    batch_X, problem, pbn, experiments, config, measured_nodes = args
+    batch_X, problem, pbn, experiments, config, measured_nodes, normalize = args
     
     # Suppress warnings in worker processes
     import warnings
@@ -459,7 +491,7 @@ def _evaluate_batch_worker(args):
     
     # Create local evaluator
     from KGBN.simulation_evaluator import SimulationEvaluator
-    evaluator = SimulationEvaluator(pbn, experiments, config)
+    evaluator = SimulationEvaluator(pbn, experiments, config, normalize=normalize)
     
     n_samples = batch_X.shape[0]
     n_measured = len(measured_nodes)
@@ -477,9 +509,15 @@ def _evaluate_batch_worker(args):
                 evaluator._update_pbn_parameters(cij_matrix)
                 steady_state = evaluator._simulate_experiment(experiment)
                 
-                for j, node_name in enumerate(measured_nodes):
-                    node_idx = pbn.nodeDict[node_name]
-                    exp_results[exp_idx, j] = steady_state[node_idx]
+                if experiment.get('measured_formula'):
+                    var_values = {name: steady_state[idx]
+                                  for name, idx in pbn.nodeDict.items()}
+                    exp_results[exp_idx, 0] = evaluator._safe_eval_formula(
+                        experiment['measured_formula'], var_values)
+                else:
+                    for j, node_name in enumerate(measured_nodes):
+                        node_idx = pbn.nodeDict[node_name]
+                        exp_results[exp_idx, j] = steady_state[node_idx]
                     
             except Exception:
                 exp_results[exp_idx, :] = np.nan
@@ -926,7 +964,8 @@ def influence_analysis(
 # MSE Sensitivity Analysis
 # ==============================
 
-def mse_sensitivity_analysis(network, experiments, config=None, top_n=5, verbose=True):
+def mse_sensitivity_analysis(network, experiments, config=None, top_n=5, verbose=True,
+                             Measured_formula: Optional[str] = None, normalize: bool = False):
     """
     Perform MSE sensitivity analysis to identify which nodes have the largest impact on model fitting quality.
     
@@ -946,6 +985,10 @@ def mse_sensitivity_analysis(network, experiments, config=None, top_n=5, verbose
         Number of top sensitive nodes to return
     verbose : bool
         Whether to print detailed progress information
+    Measured_formula : str, optional
+        Formula to use for calculating measurements. Overrides CSV ``Measured_nodes``.
+    normalize : bool, default=False
+        Whether to normalize formula-based measurements using min-max scaling across experiments.
         
     Returns:
     --------
@@ -959,7 +1002,8 @@ def mse_sensitivity_analysis(network, experiments, config=None, top_n=5, verbose
     start_time = time.time()
     
     # Initialize analyzer
-    analyzer = MSESensitivityAnalyzer(network, experiments, config, verbose)
+    analyzer = MSESensitivityAnalyzer(network, experiments, config, verbose,
+                                     Measured_formula=Measured_formula, normalize=normalize)
     
     if verbose:
         print("="*60)
@@ -991,9 +1035,12 @@ class MSESensitivityAnalyzer:
     Performs MSE sensitivity analysis on PBN to identify nodes critical for model fitting.
     """
     
-    def __init__(self, network, experiments, config=None, verbose=True):
+    def __init__(self, network, experiments, config=None, verbose=True,
+                 Measured_formula: Optional[str] = None, normalize: bool = False):
         self.pbn = network
         self.verbose = verbose
+        self.normalize = normalize
+        self.measured_formula = Measured_formula
         
         # Load experiments if path provided
         if isinstance(experiments, str):
@@ -1001,6 +1048,20 @@ class MSESensitivityAnalyzer:
             self.experiments = ExperimentData.load_from_csv(experiments)
         else:
             self.experiments = experiments
+
+        # Apply Measured_formula override (same logic as ParameterOptimizer)
+        if Measured_formula:
+            override_formula = str(Measured_formula)
+            for exp in self.experiments:
+                exp['measured_formula'] = override_formula
+                if exp.get('measured_value') is None:
+                    raw_vals = exp.get('measured_values_raw') or []
+                    if len(raw_vals) != 1:
+                        raise ValueError(
+                            "Measured_formula requires each experiment to have exactly one Measured_values entry in the CSV"
+                        )
+                    exp['measured_value'] = raw_vals[0]
+                exp['measurements'] = {}
             
         # Set up configuration
         self.config = self._default_config()
@@ -1012,7 +1073,8 @@ class MSESensitivityAnalyzer:
         self.evaluator = SimulationEvaluator(
             self.pbn, 
             self.experiments, 
-            self.config
+            self.config,
+            normalize=normalize
         )
         
         # Extract measured nodes from experiments
@@ -1053,6 +1115,8 @@ class MSESensitivityAnalyzer:
     
     def _get_measured_nodes(self):
         """Extract all measured nodes from experiments"""
+        if any(exp.get('measured_formula') for exp in self.experiments):
+            return ['Formula']
         measured = set()
         for exp in self.experiments:
             measured.update(exp['measurements'].keys())
@@ -1067,28 +1131,49 @@ class MSESensitivityAnalyzer:
                 analyzable.append((node_name, node_idx))
         return analyzable
     
+    def _calculate_mse_for_current_params(self):
+        """
+        Calculate MSE using the current PBN parameters.
+        Handles both standard and normalized modes.
+        """
+        if self.normalize:
+            experiment_predictions = []
+            for experiment in self.experiments:
+                try:
+                    predicted = self.evaluator._simulate_experiment(experiment)
+                    experiment_predictions.append({
+                        'experiment': experiment,
+                        'predicted': predicted
+                    })
+                except Exception as e:
+                    if self.verbose:
+                        print(f"Warning: Simulation failed for experiment: {e}")
+                    return 1e10
+            total_sse = self.evaluator._calculate_normalized_sse(experiment_predictions)
+        else:
+            total_sse = 0
+            for experiment in self.experiments:
+                try:
+                    predicted = self.evaluator._simulate_experiment(experiment)
+                    sse = self.evaluator._calculate_sse(predicted, experiment)
+                    total_sse += sse
+                except Exception as e:
+                    if self.verbose:
+                        print(f"Warning: Simulation failed for experiment: {e}")
+                    total_sse += 1e10
+        return total_sse / len(self.experiments)
+
     def _calculate_baseline_mse(self):
         """Calculate baseline MSE with original parameters"""
-        total_sse = 0
-        for experiment in self.experiments:
-            try:
-                predicted = self.evaluator._simulate_experiment(experiment)
-                sse = self.evaluator._calculate_sse(predicted, experiment['measurements'])
-                total_sse += sse
-            except Exception as e:
-                if self.verbose:
-                    print(f"Warning: Baseline simulation failed for experiment: {e}")
-                total_sse += 1e10  # Large penalty for failed simulations
-        
-        return total_sse / len(self.experiments)
+        return self._calculate_mse_for_current_params()
     
     def _calculate_experiment_errors(self):
-        """Calculate per-experiment errors for baseline"""
+        """Calculate per-experiment errors for baseline (always on original scale)"""
         errors = {}
         for i, experiment in enumerate(self.experiments):
             try:
                 predicted = self.evaluator._simulate_experiment(experiment)
-                sse = self.evaluator._calculate_sse(predicted, experiment['measurements'])
+                sse = self.evaluator._calculate_sse(predicted, experiment)
                 errors[f"Experiment_{i+1}"] = sse
             except Exception:
                 errors[f"Experiment_{i+1}"] = 1e10
@@ -1189,20 +1274,8 @@ class MSESensitivityAnalyzer:
     
     def _calculate_perturbed_mse(self, cij_matrix):
         """Calculate MSE with perturbed parameters"""
-        # Update PBN parameters
         self.evaluator._update_pbn_parameters(cij_matrix)
-        
-        # Calculate total SSE
-        total_sse = 0
-        for experiment in self.experiments:
-            try:
-                predicted = self.evaluator._simulate_experiment(experiment)
-                sse = self.evaluator._calculate_sse(predicted, experiment['measurements'])
-                total_sse += sse
-            except Exception:
-                total_sse += 1e10  # Large penalty for failed simulations
-        
-        return total_sse / len(self.experiments)
+        return self._calculate_mse_for_current_params()
     
     def get_top_sensitive_nodes(self, sensitivity_df, top_n=5):
         """Extract top N sensitive nodes from results"""

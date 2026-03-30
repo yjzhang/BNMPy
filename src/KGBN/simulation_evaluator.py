@@ -138,7 +138,7 @@ class SimulationEvaluator:
                     # Use tuple (exp_id, node_name) as key for node-based measurements
                     self.normalized_measured_values[(exp['id'], node_name)] = normalized
         
-        print(f"Normalization enabled: Measured values range [{min_val:.4f}, {max_val:.4f}] scaled to [0, 1]")
+        # print(f"Normalization enabled: Measured values range [{min_val:.4f}, {max_val:.4f}] scaled to [0, 1]")
     
     def _store_original_parameters(self):
         """Store original parameters for non-optimized nodes"""
